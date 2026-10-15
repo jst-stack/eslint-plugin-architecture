@@ -18,7 +18,7 @@ export const uiContract = {
 	create(context) {
 		const policy = createUiPolicy(context.options[0])
 		const path = getProjectPath(context.filename)
-		if (!/\/ui\/.*\.component\.[jt]sx$/u.test(path)) {
+		if (!/(?:^|\/)ui\/(?:[^/]+\/)*[^/]+\.component\.[jt]sx$/u.test(path)) {
 			return {}
 		}
 		return {
