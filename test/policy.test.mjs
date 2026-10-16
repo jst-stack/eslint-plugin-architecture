@@ -64,6 +64,24 @@ test('loads the shared project policy from jst.config.ts', async () => {
 	}
 })
 
+test('reuses an already-normalized compatibility policy without rejecting quality limits', async () => {
+	const root = await mkdtemp(resolve(tmpdir(), 'jst-policy-frozen-'))
+	try {
+		await writeFile(
+			resolve(root, 'jst.config.ts'),
+			`export default Object.freeze({
+	styles: Object.freeze({ moduleExtension: 'scss' }),
+	limits: Object.freeze({ complexity: 12, maxDepth: 3, maxLines: 250, maxLinesPerFunction: 80, maxParams: 4, maxPublicApiExports: 30 }),
+})\n`,
+		)
+		const policy = await loadPolicy(root)
+		assert.equal(policy.styles.moduleExtension, 'scss')
+		assert.equal(policy.limits.complexity, 12)
+	} finally {
+		await rm(root, { force: true, recursive: true })
+	}
+})
+
 test('publishes an exact top-level schema for every policy section', () => {
 	assert.equal(policySchema.additionalProperties, false)
 	assert.deepEqual(Object.keys(policySchema.properties).sort(), Object.keys(plugin.defaultPolicy).sort())
