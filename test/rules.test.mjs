@@ -151,6 +151,7 @@ test('rejects effect, state-manager, file-role, and UI-boundary violations', () 
 test('allows props-driven views, local presentation state, and repository effects', () => {
 	const view = "import { useState } from 'react'; export function Orders({ items, onSelect }) { const [open, setOpen] = useState(false); return items.map(item => item.name) }"
 	assert.equal(errors(lint(view, 'src/features/orders/ui/orders.component.tsx')).length, 0)
+	assert.equal(errors(lint(view, `src/features/orders/ui/${'nested/'.repeat(1_000)}orders.component.tsx`)).length, 0)
 	assert.equal(errors(lint("import axios from 'axios'; export const load = () => axios.get('/orders')", 'src/entities/order/repository/orders.repository.ts')).length, 0)
 })
 

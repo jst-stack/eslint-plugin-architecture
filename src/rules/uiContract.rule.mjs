@@ -18,7 +18,11 @@ export const uiContract = {
 	create(context) {
 		const policy = createUiPolicy(context.options[0])
 		const path = getProjectPath(context.filename)
-		if (!/(?:^|\/)ui\/(?:[^/]+\/)*[^/]+\.component\.[jt]sx$/u.test(path)) {
+		const segments = path.split('/')
+		const filename = segments.at(-1) ?? ''
+		const isComponent = ['.component.js', '.component.jsx', '.component.ts', '.component.tsx']
+			.some(suffix => filename.endsWith(suffix))
+		if (!segments.includes('ui') || !isComponent) {
 			return {}
 		}
 		return {
