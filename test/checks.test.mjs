@@ -17,12 +17,15 @@ test('accepts the kernel and rejects unowned styles', async () => {
 		await mkdir(resolve(root, 'src/app/container'), { recursive: true })
 		await mkdir(resolve(root, 'src/shared/di'), { recursive: true })
 		await writeFile(resolve(root, 'package.json'), JSON.stringify({ dependencies: { '@needle-di/core': '1.0.0' } }))
-		await writeFile(resolve(root, 'src/app/container/container.composition.ts'), `import.meta.glob([
+		await writeFile(
+			resolve(root, 'src/app/container/container.composition.ts'),
+			`import.meta.glob([
 			'../../entities/**/*.provider.ts',
 			'../../features/**/*.provider.ts',
 			'../../modules/**/*.provider.ts',
 			'../../shared/**/*.provider.ts',
-		])\n`)
+		])\n`,
+		)
 		await writeFile(resolve(root, 'src/shared/di/serviceLocator.context.ts'), 'export const useService = () => null\n')
 		await checkArchitecture(root)
 		await checkStyles(root)
@@ -32,8 +35,7 @@ test('accepts the kernel and rejects unowned styles', async () => {
 		await mkdir(resolve(root, 'src/features/orders/ui'), { recursive: true })
 		await writeFile(resolve(root, 'src/features/orders/ui/orphan.css'), '')
 		await assert.rejects(checkStyles(root), /local styles must use <owner>\.module\.css/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -45,17 +47,10 @@ test('requires bounded-context public APIs and enforces their export budget', as
 		await assert.rejects(checkArchitecture(root), /billing\.public\.ts/u)
 		await writeFile(resolve(root, 'src/modules/billing/billing.public.ts'), 'export const billing = 1\nexport const invoice = 2\n')
 		await checkArchitecture(root, defineArchitecture({ limits: { maxPublicApiExports: 2 } }))
-		await assert.rejects(
-			checkArchitecture(root, defineArchitecture({ limits: { maxPublicApiExports: 1 } })),
-			/exposes 2 public entries/u,
-		)
+		await assert.rejects(checkArchitecture(root, defineArchitecture({ limits: { maxPublicApiExports: 1 } })), /exposes 2 public entries/u)
 		await writeFile(resolve(root, 'src/modules/billing/billing.public.ts'), 'const billing = 1\nconst invoice = 2\nexport { billing, invoice }\n')
-		await assert.rejects(
-			checkArchitecture(root, defineArchitecture({ limits: { maxPublicApiExports: 1 } })),
-			/exposes 2 public entries/u,
-		)
-	}
-	finally {
+		await assert.rejects(checkArchitecture(root, defineArchitecture({ limits: { maxPublicApiExports: 1 } })), /exposes 2 public entries/u)
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -71,8 +66,7 @@ test('requires discovered providers to declare their request lifetime', async ()
 		await assert.rejects(checkArchitecture(root), /must declare request scope/u)
 		await writeFile(provider, "export const scope = 'request' as const\nexport function provider() {}\n")
 		await checkArchitecture(root)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -103,8 +97,7 @@ test('enforces workspace public entries, ADRs, declared dependencies, and acycli
 		payments.dependencies = { '@jst-internal/orders': 'workspace:*' }
 		await writeFile(resolve(root, 'packages/payments/package.json'), JSON.stringify(payments))
 		await assert.rejects(checkArchitecture(root), /Workspace package cycle/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -124,8 +117,7 @@ test('rejects deep package exports and incomplete microfrontend operations contr
 		manifest.scripts = { build: 'vite build' }
 		await writeFile(path, JSON.stringify(manifest))
 		await assert.rejects(checkArchitecture(root), /must declare jst\.fallback/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -137,12 +129,15 @@ async function createArchitectureFixture(extraManifest = {}) {
 	}
 	await mkdir(resolve(root, 'src/app/container'), { recursive: true })
 	await writeFile(resolve(root, 'package.json'), JSON.stringify({ dependencies: { '@needle-di/core': '1.0.0' }, ...extraManifest }))
-	await writeFile(resolve(root, 'src/app/container/container.composition.ts'), `import.meta.glob([
+	await writeFile(
+		resolve(root, 'src/app/container/container.composition.ts'),
+		`import.meta.glob([
 		'../../entities/**/*.provider.ts',
 		'../../features/**/*.provider.ts',
 		'../../modules/**/*.provider.ts',
 		'../../shared/**/*.provider.ts',
-	])\n`)
+	])\n`,
+	)
 	return root
 }
 
@@ -152,12 +147,15 @@ async function createWorkspacePackage(root, name, { dependencies = {}, source })
 	await mkdir(resolve(path, 'src'), { recursive: true })
 	await mkdir(resolve(root, 'docs/decisions'), { recursive: true })
 	await writeFile(decision, '# Decision\n\n## Context\n\n## Decision\n\n## Consequences\n\n## Revisit when\n\n## Rollback\n')
-	await writeFile(resolve(path, 'package.json'), JSON.stringify({
-		dependencies,
-		exports: { '.': './src/index.ts' },
-		jst: { architectureDecision: `../../docs/decisions/0001-extract-${name}.md`, kind: 'bounded-context' },
-		name: `@jst-internal/${name}`,
-	}))
+	await writeFile(
+		resolve(path, 'package.json'),
+		JSON.stringify({
+			dependencies,
+			exports: { '.': './src/index.ts' },
+			jst: { architectureDecision: `../../docs/decisions/0001-extract-${name}.md`, kind: 'bounded-context' },
+			name: `@jst-internal/${name}`,
+		}),
+	)
 	await writeFile(resolve(path, 'src/index.ts'), source)
 }
 
@@ -169,8 +167,7 @@ test('uses the configured style module extension', async () => {
 		await writeFile(resolve(root, 'src/features/orders/ui/orders.component.module.scss'), '')
 		await checkStyles(root, defineArchitecture({ styles: { moduleExtension: 'scss' } }))
 		await assert.rejects(checkStyles(root), /module\.css/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -190,8 +187,7 @@ test('enforces gzip and unexpected-chunk budgets from policy', async () => {
 			checkBuildBudgets(root, defineArchitecture({ performance: { budgets: { unexpectedChunks: ['app.js'] } } })),
 			/Unexpected build chunks/u,
 		)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })

@@ -5,8 +5,7 @@ export function createRecommendedConfig(plugin, overrides) {
 	const policy = createPolicy(overrides)
 	const layerGlob = Object.keys(policy.imports.layers).join(',')
 	const slicedLayerGlob = policy.imports.slicedLayers.join(',')
-	const uiForbiddenImports = policy.ui.forbiddenImportPatterns
-		.map(pattern => pattern.replaceAll('{alias}', policy.imports.alias))
+	const uiForbiddenImports = policy.ui.forbiddenImportPatterns.map((pattern) => pattern.replaceAll('{alias}', policy.imports.alias))
 	return [
 		{
 			files: [`src/{${layerGlob}}/**/*.{js,jsx,mjs,ts,tsx}`],
@@ -24,18 +23,23 @@ export function createRecommendedConfig(plugin, overrides) {
 		{
 			files: [`src/{${slicedLayerGlob}}/*/ui/**/*.{js,jsx,mjs,ts,tsx}`],
 			rules: {
-				'no-restricted-imports': ['error', {
-					patterns: [{
-						group: uiForbiddenImports,
-						message: 'UI receives state and actions through props. Keep DI and orchestration in the entry or composition root.',
-					}],
-				}],
+				'no-restricted-imports': [
+					'error',
+					{
+						patterns: [
+							{
+								group: uiForbiddenImports,
+								message: 'UI receives state and actions through props. Keep DI and orchestration in the entry or composition root.',
+							},
+						],
+					},
+				],
 			},
 		},
-		...policy.exceptions.map(exception => ({
+		...policy.exceptions.map((exception) => ({
 			files: exception.files,
 			name: `jst/exception: ${exception.reason}`,
-			rules: Object.fromEntries(exception.rules.map(rule => [rule, 'off'])),
+			rules: Object.fromEntries(exception.rules.map((rule) => [rule, 'off'])),
 		})),
 	]
 }

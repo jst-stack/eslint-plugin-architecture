@@ -3,7 +3,12 @@ const defaults = {
 		containerFiles: ['src/app/container/container.composition.ts', 'src/app/container/container.ts'],
 		decisionDirectory: 'docs/decisions',
 		packageRoots: ['packages'],
-		providerGlobs: ['../../entities/**/*.provider.ts', '../../features/**/*.provider.ts', '../../modules/**/*.provider.ts', '../../shared/**/*.provider.ts'],
+		providerGlobs: [
+			'../../entities/**/*.provider.ts',
+			'../../features/**/*.provider.ts',
+			'../../modules/**/*.provider.ts',
+			'../../shared/**/*.provider.ts',
+		],
 		requiredDecisionHeadings: ['Context', 'Decision', 'Consequences', 'Revisit when', 'Rollback'],
 		requiredDependencies: ['@needle-di/core'],
 		serviceLocatorOwners: ['app', 'pages'],
@@ -17,12 +22,61 @@ const defaults = {
 	files: {
 		frameworkFiles: ['src/entry.client.tsx', 'src/entry.server.tsx', 'src/root.tsx', 'src/routes.ts', 'src/vite-env.d.ts'],
 		roleDirectories: {
-			action: 'model', adapter: 'repository', builder: 'model', component: 'ui', dto: 'repository',
-			entry: null, gateway: 'repository', injector: null, mapper: 'model', model: 'model',
-			handler: 'repository', parser: 'repository', persister: 'repository', provider: null, public: null, repository: 'repository',
-			schema: 'model', service: 'services', store: null, viewModel: null,
+			action: 'model',
+			adapter: 'repository',
+			builder: 'model',
+			component: 'ui',
+			dto: 'repository',
+			entry: null,
+			gateway: 'repository',
+			injector: null,
+			mapper: 'model',
+			model: 'model',
+			handler: 'repository',
+			parser: 'repository',
+			persister: 'repository',
+			provider: null,
+			public: null,
+			repository: 'repository',
+			schema: 'model',
+			service: 'services',
+			store: null,
+			viewModel: null,
 		},
-		roles: ['action', 'adapter', 'builder', 'check', 'component', 'composition', 'config', 'context', 'dto', 'entry', 'factory', 'gateway', 'handler', 'hook', 'injector', 'lib', 'mapper', 'model', 'page', 'parser', 'persister', 'policy', 'provider', 'public', 'repository', 'rule', 'schema', 'service', 'store', 'types', 'util', 'viewModel'],
+		roles: [
+			'action',
+			'adapter',
+			'builder',
+			'check',
+			'component',
+			'composition',
+			'config',
+			'context',
+			'dto',
+			'entry',
+			'factory',
+			'gateway',
+			'handler',
+			'hook',
+			'injector',
+			'lib',
+			'mapper',
+			'model',
+			'page',
+			'parser',
+			'persister',
+			'policy',
+			'provider',
+			'public',
+			'repository',
+			'rule',
+			'schema',
+			'service',
+			'store',
+			'types',
+			'util',
+			'viewModel',
+		],
 		sliceDirectories: {
 			entities: ['__tests__', 'lib', 'model', 'repository', 'services', 'ui'],
 			features: ['__tests__', 'lib', 'model', 'ui'],
@@ -92,7 +146,7 @@ function validateRecordEntry(value, recordPath, path) {
 		}
 		return
 	}
-	if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
+	if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
 		throw new TypeError(`${path} must be an array of strings.`)
 	}
 }
@@ -101,7 +155,7 @@ function validatePolicy(policy) {
 	validatePositiveIntegers(policy.limits, 'limits')
 	const { unexpectedChunks, ...sizeBudgets } = policy.performance.budgets
 	validatePositiveIntegers(sizeBudgets, 'performance.budgets')
-	if (!Array.isArray(unexpectedChunks) || unexpectedChunks.some(value => typeof value !== 'string')) {
+	if (!Array.isArray(unexpectedChunks) || unexpectedChunks.some((value) => typeof value !== 'string')) {
 		throw new TypeError('performance.budgets.unexpectedChunks must be an array of strings.')
 	}
 	if (!['css', 'scss'].includes(policy.styles.moduleExtension)) {
@@ -151,7 +205,7 @@ function validateValue(value, expected, path) {
 			validateExceptions(value)
 			return
 		}
-		if (!Array.isArray(value) || value.some(item => typeof item !== 'string')) {
+		if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
 			throw new TypeError(`${path} must be an array of strings.`)
 		}
 		return
@@ -199,7 +253,7 @@ function validateExceptions(value) {
 }
 
 function validateStringArray(value, path) {
-	if (!Array.isArray(value) || !value.length || value.some(item => typeof item !== 'string')) {
+	if (!Array.isArray(value) || !value.length || value.some((item) => typeof item !== 'string')) {
 		throw new TypeError(`${path} must be a non-empty array of strings.`)
 	}
 }
@@ -210,8 +264,7 @@ function merge(base, overrides, path = '') {
 		const entryPath = path ? `${path}.${key}` : key
 		if (isPlainObject(value) && isPlainObject(base[key])) {
 			result[key] = recordPaths.has(entryPath) ? { ...base[key], ...value } : merge(base[key], value, entryPath)
-		}
-		else {
+		} else {
 			result[key] = value
 		}
 	}

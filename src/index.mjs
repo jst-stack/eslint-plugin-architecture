@@ -20,7 +20,7 @@ const plugin = {
 }
 
 plugin.configs.recommended = createRecommendedConfig(plugin)
-plugin.createConfig = overrides => createRecommendedConfig(plugin, overrides)
+plugin.createConfig = (overrides) => createRecommendedConfig(plugin, overrides)
 plugin.defaultPolicy = defaultPolicy
 
 export const defineArchitecture = createPolicy

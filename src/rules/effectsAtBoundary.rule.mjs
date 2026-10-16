@@ -22,7 +22,7 @@ export const effectsAtBoundary = {
 			return {}
 		}
 		const report = (node, effect) => context.report({ data: { effect }, messageId: 'effect', node })
-		const isGlobal = node => isUnshadowed(context, node)
+		const isGlobal = (node) => isUnshadowed(context, node)
 
 		return {
 			CallExpression(node) {
@@ -43,8 +43,13 @@ export const effectsAtBoundary = {
 				if (node.object.type === 'Identifier' && policy.globals.has(node.object.name) && isGlobal(node.object)) {
 					report(node, node.object.name)
 				}
-				if (node.object.type === 'Identifier' && ['globalThis', 'window'].includes(node.object.name) && isGlobal(node.object)
-					&& node.property.type === 'Identifier' && policy.globals.has(node.property.name)) {
+				if (
+					node.object.type === 'Identifier' &&
+					['globalThis', 'window'].includes(node.object.name) &&
+					isGlobal(node.object) &&
+					node.property.type === 'Identifier' &&
+					policy.globals.has(node.property.name)
+				) {
 					report(node, node.property.name)
 				}
 				if (isMember(node, 'document', 'cookie') && isGlobal(node.object)) {
@@ -61,14 +66,17 @@ export const effectsAtBoundary = {
 }
 
 function isEffectBoundary(path) {
-	return /^src\/entities\/[^/]+\/repository\//u.test(path)
-		|| /^src\/shared\/.+\.(?:adapter|gateway|persister|repository)\.[jt]s$/u.test(path)
+	return /^src\/entities\/[^/]+\/repository\//u.test(path) || /^src\/shared\/.+\.(?:adapter|gateway|persister|repository)\.[jt]s$/u.test(path)
 }
 
 function isMember(node, object, property) {
-	return node.type === 'MemberExpression'
-		&& node.object.type === 'Identifier' && node.object.name === object
-		&& node.property.type === 'Identifier' && node.property.name === property
+	return (
+		node.type === 'MemberExpression' &&
+		node.object.type === 'Identifier' &&
+		node.object.name === object &&
+		node.property.type === 'Identifier' &&
+		node.property.name === property
+	)
 }
 
 function reportEffectPackage(node, name, report, policy) {

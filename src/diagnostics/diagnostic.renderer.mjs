@@ -11,5 +11,7 @@ function renderPretty(diagnostic) {
 		diagnostic.file ? `File: ${diagnostic.file}` : undefined,
 		`Repair: ${diagnostic.repair}`,
 		`Docs: ${diagnostic.docsUrl}`,
-	].filter(Boolean).join('\n')
+	]
+		.filter(Boolean)
+		.join('\n')
 }

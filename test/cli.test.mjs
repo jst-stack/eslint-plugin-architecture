@@ -30,8 +30,7 @@ test('publishes one machine-readable diagnostic document', async () => {
 		assert.equal(payload.diagnostics[0].code, 'styles.module-name')
 		assert.match(payload.diagnostics[0].repair, /Rename the file/u)
 		assert.match(payload.diagnostics[0].docsUrl, /cli-diagnostics\.md/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })
@@ -50,8 +49,7 @@ test('keeps pretty diagnostics readable and distinguishes invocation failures', 
 		const invalid = spawnSync(process.execPath, [cli, 'unknown'], { cwd: root, encoding: 'utf8' })
 		assert.equal(invalid.status, 2)
 		assert.match(invalid.stderr, /Usage:/u)
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })

@@ -7,8 +7,7 @@ export async function findExisting(root, candidates) {
 		try {
 			await access(path)
 			return path
-		}
-		catch {
+		} catch {
 			continue
 		}
 	}
@@ -17,9 +16,11 @@ export async function findExisting(root, candidates) {
 
 export async function listFiles(directory) {
 	const entries = await readdir(directory, { withFileTypes: true })
-	const paths = await Promise.all(entries.map((entry) => {
-		const path = resolve(directory, entry.name)
-		return entry.isDirectory() ? listFiles(path) : [path]
-	}))
+	const paths = await Promise.all(
+		entries.map((entry) => {
+			const path = resolve(directory, entry.name)
+			return entry.isDirectory() ? listFiles(path) : [path]
+		}),
+	)
 	return paths.flat()
 }

@@ -31,9 +31,9 @@ export class DiagnosticError extends Error {
 	diagnostics
 
 	constructor(diagnostics) {
-		super(diagnostics.map(diagnostic => diagnostic.message).join('\n'))
+		super(diagnostics.map((diagnostic) => diagnostic.message).join('\n'))
 		this.name = 'DiagnosticError'
-		this.diagnostics = Object.freeze(diagnostics.map(diagnostic => Object.freeze({ ...diagnostic })))
+		this.diagnostics = Object.freeze(diagnostics.map((diagnostic) => Object.freeze({ ...diagnostic })))
 	}
 }
 

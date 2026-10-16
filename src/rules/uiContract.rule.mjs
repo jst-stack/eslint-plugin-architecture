@@ -20,8 +20,7 @@ export const uiContract = {
 		const path = getProjectPath(context.filename)
 		const segments = path.split('/')
 		const filename = segments.at(-1) ?? ''
-		const isComponent = ['.component.js', '.component.jsx', '.component.ts', '.component.tsx']
-			.some(suffix => filename.endsWith(suffix))
+		const isComponent = ['.component.js', '.component.jsx', '.component.ts', '.component.tsx'].some((suffix) => filename.endsWith(suffix))
 		if (!segments.includes('ui') || !isComponent) {
 			return {}
 		}
