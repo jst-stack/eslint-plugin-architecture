@@ -15,7 +15,10 @@ export const importContract = {
 			publicApi: 'Import {{layer}}/{{slice}} through its {{slice}}{{suffix}} public API instead of deep-importing private implementation.',
 			serviceLocator: 'useService is restricted to app/pages composition roots. Inject a narrow dependency into lower layers.',
 			slice: 'Do not import directly across {{layer}} slices ({{source}} → {{target}}). Compose them in a higher layer or inject a narrow port.',
-			state: 'Keep {{name}} in a store, feature entry, page, or app composition root. Models, services, repositories, and views stay state-manager agnostic.',
+			state: [
+				'Keep {{name}} in a store, feature entry, page, or app composition root.',
+				'Models, services, repositories, and views stay state-manager agnostic.',
+			].join(' '),
 		},
 		schema: [{ type: 'object' }],
 		type: 'problem',
@@ -50,9 +53,9 @@ function validateServiceLocator(context, node, source, policy) {
 	if (policy.serviceLocatorOwners.has(source.layer)) {
 		return
 	}
-	const importsServiceLocator = node.specifiers.some(specifier => specifier.type === 'ImportSpecifier'
-		&& specifier.imported.type === 'Identifier'
-		&& specifier.imported.name === 'useService')
+	const importsServiceLocator = node.specifiers.some(
+		(specifier) => specifier.type === 'ImportSpecifier' && specifier.imported.type === 'Identifier' && specifier.imported.name === 'useService',
+	)
 	if (importsServiceLocator) {
 		context.report({ messageId: 'serviceLocator', node })
 	}
@@ -131,7 +134,7 @@ function isTest(path) {
 }
 
 function createImportPolicy(overrides) {
-	const policy = createPolicy(overrides?.imports ? overrides : overrides ? { imports: overrides } : {})
+	const policy = createPolicy(importOverrides(overrides))
 	const imports = policy.imports
 	return {
 		...imports,
@@ -140,4 +143,11 @@ function createImportPolicy(overrides) {
 		serviceLocatorOwners: new Set(policy.architecture.serviceLocatorOwners),
 		slicedLayers: new Set(imports.slicedLayers),
 	}
+}
+
+function importOverrides(overrides) {
+	if (!overrides) {
+		return {}
+	}
+	return overrides.imports ? overrides : { imports: overrides }
 }

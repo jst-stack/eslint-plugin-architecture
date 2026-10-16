@@ -4,16 +4,18 @@ import { Linter } from 'eslint'
 import plugin from '../src/index.mjs'
 
 const linter = new Linter({ configType: 'flat' })
-const config = [{
-	files: ['**/*.{ts,tsx}'],
-	languageOptions: {
-		ecmaVersion: 'latest',
-		parserOptions: { ecmaFeatures: { jsx: true } },
-		sourceType: 'module',
+const config = [
+	{
+		files: ['**/*.{ts,tsx}'],
+		languageOptions: {
+			ecmaVersion: 'latest',
+			parserOptions: { ecmaFeatures: { jsx: true } },
+			sourceType: 'module',
+		},
+		plugins: { jst: plugin },
+		rules: Object.fromEntries(Object.keys(plugin.rules).map((name) => [`jst/${name}`, 'error'])),
 	},
-	plugins: { jst: plugin },
-	rules: Object.fromEntries(Object.keys(plugin.rules).map(name => [`jst/${name}`, 'error'])),
-}]
+]
 
 test('links every diagnostic to a stable repair guide', () => {
 	for (const [name, rule] of Object.entries(plugin.rules)) {
@@ -32,13 +34,17 @@ test('enforces every layer direction and isolates slices', () => {
 		shared: ['shared'],
 	}
 	assert.match(text(lint("export { value } from '@/app/value.lib'", 'src/pages/home/value.lib.ts')), /pages cannot depend on app/u)
-	assert.match(text(lint("const value = import('@/features/cart/value.lib')", 'src/features/orders/value.lib.ts')), /Do not import directly across features slices/u)
+	assert.match(
+		text(lint("const value = import('@/features/cart/value.lib')", 'src/features/orders/value.lib.ts')),
+		/Do not import directly across features slices/u,
+	)
 	const layers = Object.keys(allowed)
 	for (const source of layers) {
 		for (const target of layers) {
-			const targetPath = ['pages', 'modules', 'widgets', 'features', 'entities'].includes(target) && source !== target
-				? `@/${target}/target/target.public`
-				: `@/${target}/target/value.lib`
+			const targetPath =
+				['pages', 'modules', 'widgets', 'features', 'entities'].includes(target) && source !== target
+					? `@/${target}/target/target.public`
+					: `@/${target}/target/value.lib`
 			const messages = lint(`import '${targetPath}'`, `src/${source}/source/value.lib.ts`)
 			const shouldAllow = allowed[source].includes(target) && (source !== target || ['app', 'shared'].includes(source))
 			assert.equal(errors(messages).length === 0, shouldAllow, `${source} → ${target}`)
@@ -105,14 +111,17 @@ test('keeps network, persistence, and browser effects behind adapters', () => {
 		"import axios from 'axios'; export const load = () => axios.get('/orders')",
 		'export const save = value => firebase.firestore().add(value)',
 		"export const open = () => new WebSocket('wss://example.test')",
-		"export const save = value => { document.cookie = value }",
+		'export const save = value => { document.cookie = value }',
 		"export const notify = value => navigator.sendBeacon('/events', value)",
 		"export const load = () => import('axios')",
 	]
 	for (const source of invalidCases) {
 		assert.match(text(lint(source, 'src/entities/order/model/orders.model.ts')), /Move .* access behind/u)
 	}
-	assert.equal(errors(lint("import axios from 'axios'; export const load = () => axios.get('/orders')", 'src/entities/order/repository/orders.repository.ts')).length, 0)
+	assert.equal(
+		errors(lint("import axios from 'axios'; export const load = () => axios.get('/orders')", 'src/entities/order/repository/orders.repository.ts')).length,
+		0,
+	)
 })
 
 test('does not confuse shadowed names or package prefixes with effects', () => {
@@ -123,7 +132,10 @@ test('does not confuse shadowed names or package prefixes with effects', () => {
 })
 
 test('keeps models and services independent from state managers', () => {
-	assert.match(text(lint("import { atom } from '@reatom/core'", 'src/entities/order/model/order.model.ts')), /Models, services, repositories, and views stay state-manager agnostic/u)
+	assert.match(
+		text(lint("import { atom } from '@reatom/core'", 'src/entities/order/model/order.model.ts')),
+		/Models, services, repositories, and views stay state-manager agnostic/u,
+	)
 	assert.equal(errors(lint("import { atom } from '@reatom/core'; export const orders = atom([])", 'src/entities/order/orders.store.ts')).length, 0)
 	assert.equal(errors(lint("import { reatomComponent } from '@reatom/react'", 'src/features/orders/orders.entry.tsx')).length, 0)
 })
@@ -139,7 +151,10 @@ test('restricts imported service locators to composition roots', () => {
 test('rejects effect, state-manager, file-role, and UI-boundary violations', () => {
 	const cases = [
 		["import axios from 'axios'; export function Checkout() { return axios.post('/checkout') }", 'src/features/checkout/ui/checkout.component.tsx'],
-		["import { useQuery } from '@tanstack/react-query'; export function Orders() { return useQuery({ queryKey: ['orders'], queryFn: api.orders }) }", 'src/features/orders/ui/orders.component.tsx'],
+		[
+			"import { useQuery } from '@tanstack/react-query'; export function Orders() { return useQuery({ queryKey: ['orders'], queryFn: api.orders }) }",
+			'src/features/orders/ui/orders.component.tsx',
+		],
 		['export const orders = {}', 'src/features/orders/ui/orders.store.ts'],
 		['export const save = value => firebase.firestore().add(value)', 'src/features/orders/model/orders.model.ts'],
 	]
@@ -149,14 +164,26 @@ test('rejects effect, state-manager, file-role, and UI-boundary violations', () 
 })
 
 test('allows props-driven views, local presentation state, and repository effects', () => {
-	const view = "import { useState } from 'react'; export function Orders({ items, onSelect }) { const [open, setOpen] = useState(false); return items.map(item => item.name) }"
+	const view = [
+		"import { useState } from 'react'",
+		'export function Orders({ items }) {',
+		'const [open] = useState(false)',
+		'return open ? items.map(item => item.name) : []',
+		'}',
+	].join('\n')
 	assert.equal(errors(lint(view, 'src/features/orders/ui/orders.component.tsx')).length, 0)
 	assert.equal(errors(lint(view, `src/features/orders/ui/${'nested/'.repeat(1_000)}orders.component.tsx`)).length, 0)
-	assert.equal(errors(lint("import axios from 'axios'; export const load = () => axios.get('/orders')", 'src/entities/order/repository/orders.repository.ts')).length, 0)
+	assert.equal(
+		errors(lint("import axios from 'axios'; export const load = () => axios.get('/orders')", 'src/entities/order/repository/orders.repository.ts')).length,
+		0,
+	)
 })
 
 test('rejects inline architecture disables without owning generic suppressions', () => {
-	assert.match(text(lint('// eslint-disable-next-line jst/import-contract\nexport const value = 1', 'src/shared/lib/value.lib.ts')), /Do not disable architecture rules inline/u)
+	assert.match(
+		text(lint('// eslint-disable-next-line jst/import-contract\nexport const value = 1', 'src/shared/lib/value.lib.ts')),
+		/Do not disable architecture rules inline/u,
+	)
 	assert.doesNotMatch(text(lint('// eslint-disable-next-line no-console\nconsole.log(1)', 'src/shared/lib/value.lib.ts')), /description/u)
 })
 
@@ -165,9 +192,9 @@ function lint(code, filename) {
 }
 
 function errors(messages) {
-	return messages.filter(message => message.severity === 2)
+	return messages.filter((message) => message.severity === 2)
 }
 
 function text(messages) {
-	return messages.map(message => message.message).join('\n')
+	return messages.map((message) => message.message).join('\n')
 }

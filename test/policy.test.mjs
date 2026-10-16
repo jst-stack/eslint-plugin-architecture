@@ -28,12 +28,15 @@ test('normalizes, validates, and deeply freezes project policy', () => {
 	assert.throws(() => defineArchitecture({ imports: { slicedLayers: ['missing'] } }), /unknown layer/u)
 	assert.throws(() => defineArchitecture({ generator: { layers: { entity: 'missing' } } }), /unknown layer/u)
 	assert.throws(() => defineArchitecture({ exceptions: [{ files: ['src/legacy/**'], reason: '', rules: ['jst/import-contract'] }] }), /reason is required/u)
-	assert.throws(() => defineArchitecture({ exceptions: [{ expires: '2000-01-01', files: ['src/legacy/**'], reason: 'Migration', rules: ['jst/import-contract'] }] }), /exception expired/u)
+	assert.throws(
+		() => defineArchitecture({ exceptions: [{ expires: '2000-01-01', files: ['src/legacy/**'], reason: 'Migration', rules: ['jst/import-contract'] }] }),
+		/exception expired/u,
+	)
 })
 
 test('turns reviewed policy exceptions into narrow ESLint overrides', async () => {
 	const { default: plugin } = await import('../src/index.mjs')
-	const [,, exception] = plugin.createConfig({
+	const [, , exception] = plugin.createConfig({
 		exceptions: [{ files: ['src/legacy/**'], owner: 'platform', reason: 'Remove after migration', rules: ['jst/import-contract'] }],
 	})
 	assert.deepEqual(exception.files, ['src/legacy/**'])
@@ -56,8 +59,7 @@ test('loads the shared project policy from jst.config.ts', async () => {
 		await writeFile(resolve(root, 'jst.config.ts'), "export default { styles: { moduleExtension: 'scss' } } as const\n")
 		const policy = await loadPolicy(root)
 		assert.equal(policy.styles.moduleExtension, 'scss')
-	}
-	finally {
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })

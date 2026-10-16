@@ -18,26 +18,32 @@ export async function checkBuildBudgets(root = process.cwd(), policy = defaultPo
 	const { gzipCssBytes, gzipJavaScriptBytes, unexpectedChunks } = policy.performance.budgets
 	const failures = []
 	if (totals.css > gzipCssBytes) {
-		failures.push(diagnostic(
-			'budgets.css-gzip',
-			`CSS gzip budget exceeded: ${totals.css} > ${gzipCssBytes} bytes.`,
-			'Remove or split CSS, or deliberately revise performance.budgets.gzipCssBytes in jst.config.ts.',
-		))
+		failures.push(
+			diagnostic(
+				'budgets.css-gzip',
+				`CSS gzip budget exceeded: ${totals.css} > ${gzipCssBytes} bytes.`,
+				'Remove or split CSS, or deliberately revise performance.budgets.gzipCssBytes in jst.config.ts.',
+			),
+		)
 	}
 	if (totals.js > gzipJavaScriptBytes) {
-		failures.push(diagnostic(
-			'budgets.javascript-gzip',
-			`JavaScript gzip budget exceeded: ${totals.js} > ${gzipJavaScriptBytes} bytes.`,
-			'Remove or split JavaScript, or deliberately revise performance.budgets.gzipJavaScriptBytes in jst.config.ts.',
-		))
+		failures.push(
+			diagnostic(
+				'budgets.javascript-gzip',
+				`JavaScript gzip budget exceeded: ${totals.js} > ${gzipJavaScriptBytes} bytes.`,
+				'Remove or split JavaScript, or deliberately revise performance.budgets.gzipJavaScriptBytes in jst.config.ts.',
+			),
+		)
 	}
-	const unexpected = files.filter(file => unexpectedChunks.some(pattern => file.includes(pattern)))
+	const unexpected = files.filter((file) => unexpectedChunks.some((pattern) => file.includes(pattern)))
 	if (unexpected.length) {
-		failures.push(diagnostic(
-			'budgets.unexpected-chunk',
-			`Unexpected build chunks: ${unexpected.join(', ')}`,
-			'Remove the unexpected dependency or revise performance.budgets.unexpectedChunks in jst.config.ts.',
-		))
+		failures.push(
+			diagnostic(
+				'budgets.unexpected-chunk',
+				`Unexpected build chunks: ${unexpected.join(', ')}`,
+				'Remove the unexpected dependency or revise performance.budgets.unexpectedChunks in jst.config.ts.',
+			),
+		)
 	}
 	if (failures.length) {
 		throw new DiagnosticError(failures)

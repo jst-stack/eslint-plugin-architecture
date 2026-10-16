@@ -48,14 +48,16 @@ export function exportedRequestScope(program) {
 		if (node.type !== 'ExportNamedDeclaration' || node.declaration?.type !== 'VariableDeclaration') {
 			return false
 		}
-		return node.declaration.kind === 'const' && node.declaration.declarations.some((declaration) => {
-			let value = declaration.init
-			while (value?.type === 'TSAsExpression') {
-				value = value.expression
-			}
-			return declaration.id.type === 'Identifier' && declaration.id.name === 'scope'
-				&& value?.type === 'Literal' && value.value === 'request'
-		})
+		return (
+			node.declaration.kind === 'const' &&
+			node.declaration.declarations.some((declaration) => {
+				let value = declaration.init
+				while (value?.type === 'TSAsExpression') {
+					value = value.expression
+				}
+				return declaration.id.type === 'Identifier' && declaration.id.name === 'scope' && value?.type === 'Literal' && value.value === 'request'
+			})
+		)
 	})
 }
 
@@ -79,9 +81,8 @@ function visit(value, callback) {
 	for (const child of Object.values(value)) {
 		if (child !== value && (Array.isArray(child) || (child && typeof child === 'object'))) {
 			if (Array.isArray(child)) {
-				child.forEach(item => visit(item, callback))
-			}
-			else {
+				child.forEach((item) => visit(item, callback))
+			} else {
 				visit(child, callback)
 			}
 		}

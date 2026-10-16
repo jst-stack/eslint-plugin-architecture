@@ -14,9 +14,8 @@ test('rejects circular production imports', async () => {
 		await writeFile(resolve(root, 'src/shared/beta.lib.js'), "import { alpha } from './alpha.lib.js'\nexport const beta = alpha\n")
 		const eslint = new ESLint({ cwd: root, overrideConfig: plugin.configs.recommended, overrideConfigFile: true })
 		const results = await eslint.lintFiles(['src/**/*.js'])
-		assert.ok(results.flatMap(result => result.messages).some(message => message.ruleId === 'import-x/no-cycle'))
-	}
-	finally {
+		assert.ok(results.flatMap((result) => result.messages).some((message) => message.ruleId === 'import-x/no-cycle'))
+	} finally {
 		await rm(root, { force: true, recursive: true })
 	}
 })

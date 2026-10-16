@@ -17,15 +17,17 @@ export async function checkArchitecture(root = process.cwd(), policy = defaultPo
 
 async function assertProviderScopes(root) {
 	const files = await listFiles(resolve(root, 'src'))
-	for (const path of files.filter(file => file.endsWith('.provider.ts'))) {
+	for (const path of files.filter((file) => file.endsWith('.provider.ts'))) {
 		const source = await readFile(path, 'utf8')
 		if (!exportedRequestScope(parseModule(source, path))) {
-			fail(diagnostic(
-				'architecture.provider-scope',
-				'DI provider must declare request scope.',
-				"Export `scope = 'request' as const` from the provider module.",
-				path,
-			))
+			fail(
+				diagnostic(
+					'architecture.provider-scope',
+					'DI provider must declare request scope.',
+					"Export `scope = 'request' as const` from the provider module.",
+					path,
+				),
+			)
 		}
 	}
 }
@@ -33,63 +35,75 @@ async function assertProviderScopes(root) {
 async function assertModulePublicApis(root, policy) {
 	const modulesRoot = resolve(root, 'src/modules')
 	const modules = await readdir(modulesRoot, { withFileTypes: true })
-	for (const module of modules.filter(entry => entry.isDirectory())) {
+	for (const module of modules.filter((entry) => entry.isDirectory())) {
 		const publicApi = resolve(modulesRoot, module.name, `${module.name}${policy.imports.publicApiSuffix}.ts`)
 		const source = await readFile(publicApi, 'utf8').catch(() => {
-			fail(diagnostic(
-				'architecture.module-public-api',
-				`Bounded-context module ${module.name} must expose ${module.name}${policy.imports.publicApiSuffix}.ts.`,
-				'Add the module public API and export only its supported external contract.',
-				publicApi,
-			))
+			fail(
+				diagnostic(
+					'architecture.module-public-api',
+					`Bounded-context module ${module.name} must expose ${module.name}${policy.imports.publicApiSuffix}.ts.`,
+					'Add the module public API and export only its supported external contract.',
+					publicApi,
+				),
+			)
 		})
 		const exports = countPublicExports(parseModule(source, publicApi))
 		if (exports > policy.limits.maxPublicApiExports) {
-			fail(diagnostic(
-				'architecture.module-public-api-budget',
-				`Bounded-context module ${module.name} exposes ${exports} public entries; limit is ${policy.limits.maxPublicApiExports}.`,
-				'Shrink or split the public contract without splitting cohesive implementation details.',
-				publicApi,
-			))
+			fail(
+				diagnostic(
+					'architecture.module-public-api-budget',
+					`Bounded-context module ${module.name} exposes ${exports} public entries; limit is ${policy.limits.maxPublicApiExports}.`,
+					'Shrink or split the public contract without splitting cohesive implementation details.',
+					publicApi,
+				),
+			)
 		}
 	}
 }
 
 async function assertLayerDirectories(root, policy) {
-	await Promise.all(Object.keys(policy.imports.layers).map(async (layer) => {
-		const path = resolve(root, 'src', layer)
-		await access(path).catch(() => fail(diagnostic(
-			'architecture.layer-directory',
-			`Required architecture layer is missing: ${layer}.`,
-			`Create src/${layer} and keep the configured layer contract intact.`,
-			path,
-		)))
-	}))
+	await Promise.all(
+		Object.keys(policy.imports.layers).map(async (layer) => {
+			const path = resolve(root, 'src', layer)
+			await access(path).catch(() =>
+				fail(
+					diagnostic(
+						'architecture.layer-directory',
+						`Required architecture layer is missing: ${layer}.`,
+						`Create src/${layer} and keep the configured layer contract intact.`,
+						path,
+					),
+				),
+			)
+		}),
+	)
 }
 
 async function assertDiKernel(root, policy) {
 	const packageJson = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
-	const missingDependencies = policy.architecture.requiredDependencies
-		.filter(name => !packageJson.dependencies?.[name])
+	const missingDependencies = policy.architecture.requiredDependencies.filter((name) => !packageJson.dependencies?.[name])
 	if (missingDependencies.length) {
-		fail(diagnostic(
-			'architecture.kernel-dependency',
-			`Architecture kernel requires dependencies: ${missingDependencies.join(', ')}.`,
-			'Install the missing runtime dependencies and commit the updated lockfile.',
-			'package.json',
-		))
+		fail(
+			diagnostic(
+				'architecture.kernel-dependency',
+				`Architecture kernel requires dependencies: ${missingDependencies.join(', ')}.`,
+				'Install the missing runtime dependencies and commit the updated lockfile.',
+				'package.json',
+			),
+		)
 	}
 	const path = await findExisting(root, policy.architecture.containerFiles)
 	const source = await readFile(path, 'utf8')
 	const literals = collectStringLiterals(parseModule(source, path))
-	const missingGlobs = policy.architecture.providerGlobs
-		.filter(glob => !literals.has(glob))
+	const missingGlobs = policy.architecture.providerGlobs.filter((glob) => !literals.has(glob))
 	if (missingGlobs.length) {
-		fail(diagnostic(
-			'architecture.provider-discovery',
-			`DI composition must auto-discover provider modules: ${missingGlobs.join(', ')}.`,
-			'Add the configured provider globs to the application composition root.',
-			path,
-		))
+		fail(
+			diagnostic(
+				'architecture.provider-discovery',
+				`DI composition must auto-discover provider modules: ${missingGlobs.join(', ')}.`,
+				'Add the configured provider globs to the application composition root.',
+				path,
+			),
+		)
 	}
 }

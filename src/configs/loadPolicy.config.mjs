@@ -10,8 +10,7 @@ export async function loadPolicy(root) {
 		const path = resolve(root, file)
 		try {
 			await access(path)
-		}
-		catch {
+		} catch {
 			continue
 		}
 		const module = await import(pathToFileURL(path).href)

@@ -26,8 +26,11 @@ function validateComment(context, comment) {
 		return
 	}
 	const [ruleText = ''] = match.groups?.body?.split(/\s--\s/u, 2) ?? []
-	const rules = ruleText.split(',').map(rule => rule.trim()).filter(Boolean)
-	if (!rules.length || rules.some(rule => rule.startsWith('jst/'))) {
+	const rules = ruleText
+		.split(',')
+		.map((rule) => rule.trim())
+		.filter(Boolean)
+	if (!rules.length || rules.some((rule) => rule.startsWith('jst/'))) {
 		context.report({ messageId: 'jstRule', node: comment })
 	}
 }
