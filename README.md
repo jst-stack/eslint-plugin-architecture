@@ -28,7 +28,25 @@ Run project-wide contracts separately:
 npx jst-architecture architecture styles budgets
 ```
 
-Use [`@jst-stack/eslint-plugin-quality`](https://github.com/jst-stack/eslint-plugin-quality) for architecture-independent TypeScript and React quality rules. Existing JST projects may continue using [`@jst-stack/eslint-plugin`](https://github.com/jst-stack/eslint-plugin) during migration.
+## Add code-quality rules
+
+Install the independent quality package when the project also needs TypeScript, React, complexity, size, and readability checks:
+
+```bash
+npm install --save-dev typescript @jst-stack/eslint-plugin-quality
+```
+
+```js
+import architecture from '@jst-stack/eslint-plugin-architecture'
+import quality from '@jst-stack/eslint-plugin-quality'
+
+export default [
+	...quality.configs.recommended,
+	...architecture.configs.recommended,
+]
+```
+
+If an existing preset already owns TypeScript and React correctness, replace `quality.configs.recommended` with `quality.createRulesConfig()`. Existing JST projects may continue using the combined [`@jst-stack/eslint-plugin`](https://github.com/jst-stack/eslint-plugin) during migration.
 
 ## Policy
 
