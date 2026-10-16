@@ -1,0 +1,35 @@
+{
+	"name": "@jst-stack/eslint-plugin-architecture",
+	"version": "0.1.0",
+	"description": "Policy-driven architecture boundaries for JST and modular TypeScript applications.",
+	"type": "module",
+	"license": "MIT",
+	"engines": { "node": ">=24.15.0 <25" },
+	"exports": {
+		".": { "types": "./src/index.d.ts", "import": "./src/index.mjs" },
+		"./package.json": "./package.json",
+		"./schema": "./schema/jst-policy.schema.json"
+	},
+	"bin": { "jst-architecture": "bin/jst-lint.mjs" },
+	"files": ["bin", "docs", "LICENSE", "README.md", "schema", "src"],
+	"scripts": {
+		"lint": "eslint . --max-warnings 0",
+		"test": "node --test",
+		"benchmark": "node scripts/run-benchmarks.mjs",
+		"benchmark:update": "node scripts/run-benchmarks.mjs --write-baseline",
+		"check": "npm run lint && npm test && npm pack --dry-run",
+		"prepublishOnly": "npm run check"
+	},
+	"publishConfig": { "access": "public" },
+	"peerDependencies": { "eslint": "^9.5.0 || ^10.0.0" },
+	"dependencies": { "eslint-plugin-import-x": "^4.17.1" },
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@typescript-eslint/parser": "^8.71.2",
+		"eslint": "^10.10.0"
+	},
+	"repository": { "type": "git", "url": "git+https://github.com/jst-stack/eslint-plugin-architecture.git" },
+	"bugs": { "url": "https://github.com/jst-stack/eslint-plugin-architecture/issues" },
+	"homepage": "https://github.com/jst-stack/eslint-plugin-architecture#readme",
+	"keywords": ["architecture", "eslint", "eslintplugin", "fsd", "jst", "react"]
+}
