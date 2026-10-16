@@ -1,6 +1,6 @@
 {
 	"name": "@jst-stack/eslint-plugin-architecture",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Policy-driven architecture boundaries for JST and modular TypeScript applications.",
 	"type": "module",
 	"license": "MIT",

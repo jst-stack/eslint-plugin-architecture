@@ -14,7 +14,16 @@ export async function loadPolicy(root) {
 			continue
 		}
 		const module = await import(pathToFileURL(path).href)
-		return normalizePolicy(module.default ?? {})
+		return normalizeLoadedPolicy(module.default)
 	}
 	return normalizePolicy({})
+}
+
+function normalizeLoadedPolicy(loaded) {
+	const overrides = loaded ?? {}
+	// `defineConfig` from the compatibility bundle returns a deep-frozen,
+	// fully-normalized policy that carries quality limits this package does
+	// not own. Reuse it as-is instead of re-validating it against the
+	// narrower architecture-only defaults.
+	return Object.isFrozen(overrides) ? overrides : normalizePolicy(overrides)
 }
