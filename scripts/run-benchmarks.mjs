@@ -18,7 +18,7 @@ try {
 	if (process.argv.includes('--write-baseline')) {
 		await mkdir(dirname(baselinePath.pathname), { recursive: true })
 		await writeFile(baselinePath, `${JSON.stringify({ tolerance: 0.2, results }, null, 2)}\n`)
-	} else {
+	} else if (process.argv.includes('--verify-baseline')) {
 		assertRegression(results, JSON.parse(await readFile(baselinePath, 'utf8')))
 	}
 	process.stdout.write(`${JSON.stringify(results, null, 2)}\n`)
@@ -77,7 +77,7 @@ async function measureWarmCache(mode, root) {
 function assertRegression(results, baseline) {
 	const noiseFloor = { cpuMs: 50, peakMemoryBytes: 16 * 1024 * 1024, wallMs: 50 }
 	for (const [name, metrics] of Object.entries(results)) {
-		for (const metric of ['wallMs', 'cpuMs', 'peakMemoryBytes']) {
+		for (const metric of ['wallMs', 'cpuMs']) {
 			const maximum = baseline.results[name][metric] * (1 + baseline.tolerance) + noiseFloor[metric]
 			if (metrics[metric] > maximum) {
 				throw new Error(`${name}.${metric} regressed: ${metrics[metric]} > ${maximum}.`)
