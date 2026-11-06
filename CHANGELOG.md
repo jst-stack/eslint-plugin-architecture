@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Require Node.js 22.18.0 or newer, where type stripping for `.ts` ESLint configs is available.
+- Cover Node.js 22.18.0 and 24.15.0 against ESLint 9 and 10 in CI.
+
 ## 0.1.1
 
 - Accept an already-normalized compatibility policy from `jst.config.ts` without re-validating quality limits against the architecture-only schema.
